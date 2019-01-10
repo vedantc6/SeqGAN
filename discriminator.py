@@ -43,7 +43,7 @@ def highway(inp, size, num_layers=1, bias=2.0, f=tf.nn.relu, scope="Highway"):
     with tf.variable_scope(scope):
         for i in range(num_layers):
             g = f(linear_function(inp, size, scope=f'highway_lin_{i}'))
-            t = tf.sigmoid(linear_function(inp, size, scope=f'highway_lin_{i}') + bias)
+            t = tf.sigmoid(linear_function(inp, size, scope=f'highway_gate_{i}') + bias)
 
             output = t*g + (1. - t)*inp
             inp = output
@@ -91,7 +91,7 @@ class Discriminator(object):
                     # W - filter matrix, h - result of applying nonlinearity to convolution output. Each filter slides over the whole embedding, but varies in how many words it covers. "VALID" padding means we slide over our sentence without padding the edges, performing a narrow convolution that gives an output of shape [1, seq_len - filter_size + 1, 1, 1].
                     filter_shape = [filter_size, emb_size, 1, num_filter]
                     W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
-                    b = tf.Variable(tf.constant(0.1, shape=[num_filters]), name="b")
+                    b = tf.Variable(tf.constant(0.1, shape=[num_filter]), name="b")
                     conv = tf.nn.conv2d(self.embedded_chars_expanded,
                                         W,
                                         strides=[1, 1, 1, 1],

@@ -46,7 +46,7 @@ class Discriminator_Data_Loader():
                 line_list = [int(x) for x in line]
                 pos_examples.append(line_list)
 
-        with open(data_file, 'r') as f:
+        with open(neg_file, 'r') as f:
             for line in f:
                 line = line.strip().split()
                 line_list = [int(x) for x in line]
@@ -59,12 +59,12 @@ class Discriminator_Data_Loader():
         pos_labels = [[0, 1] for _ in pos_examples]
         neg_labels = [[1, 0] for _ in neg_examples]
 
-        self.labels = np.concatenate([pos_labels + neg_labels], 0)
+        self.labels = np.concatenate([pos_labels, neg_labels], 0)
 
         # Shuffle the data on shuffle_indexes
         shuffle_ind = np.random.permutation(np.arange(len(self.labels)))
-        self.sentences = self.sentences(shuffle_ind)
-        self.labels = self.sentences(shuffle_ind)
+        self.sentences = self.sentences[shuffle_ind]
+        self.labels = self.labels[shuffle_ind]
 
         # Split into batches
         self.num_batch = int(len(self.labels)/self.batch_size)

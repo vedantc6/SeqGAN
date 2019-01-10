@@ -87,17 +87,26 @@ class TARGET_LSTM(object):
             return i+1, x_tp1, h_t, g_pred
 
         _, _, _, self.g_pred = control_flow_ops.while_loop(
-            cond=lambda i, _1, _2, _3, _4: i < self.seq_len,
+            cond=lambda i, _1, _2, _3: i < self.seq_len,
             body=pretrain_recurrence,
             loop_vars=(tf.constant(0, dtype=tf.int32), tf.nn.embedding_lookup(self.g_emb, self.start_token), self.h0, g_pred)
         )
         # batch_size x seq_length x vocab_size
-        self.g_pred = tf.transpose(self.g_pred, perm=[1, 0, 2])
+        self.g_pred = tf.transpose(self.g_pred.stack(), perm=[1, 0, 2])
 
         # pretraining loss
-        self.pretrain_loss = -tf.reduce_sum(tf.one_hot(tf.to_int32(tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(tf.reshape(self.g_pred, [-1, self.emb_num])))/(self.seq_len*self.batch_size)
-
-        self.out_loss = tf.reduce_sum(tf.reshape(-tf.reduce_sum(tf.one_hot(tf.to_int32(tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(tf.reshape(self.g_pred, [-1, self.emb_num])), 1), [-1, self.seq_len]), 1)
+        self.pretrain_loss = -tf.reduce_sum(
+                            tf.one_hot(
+                            tf.to_int32(
+                            tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(
+                            tf.reshape(self.g_pred, [-1, self.emb_num]))) / (self.seq_len * self.batch_size)
+        self.out_loss = tf.reduce_sum(
+                            tf.reshape(
+                            -tf.reduce_sum(
+                            tf.one_hot(
+                            tf.to_int32(
+                            tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(
+                            tf.reshape(self.g_pred, [-1, self.emb_num])), 1), [-1, self.seq_len]), 1)
 
     def generate(self, sess):
         outputs = sess.run(self.gen_x)
@@ -116,8 +125,8 @@ class TARGET_LSTM(object):
         self.U_f = tf.Variable(self.params[5])
         self.b_f = tf.Variable(self.params[6])
 
-        self.W_og = tf.Variable(self.params[7])
-        self.U_og = tf.Variable(self.params[8])
+        self.W_o = tf.Variable(self.params[7])
+        self.U_o = tf.Variable(self.params[8])
         self.b_o = tf.Variable(self.params[9])
 
         self.W_c = tf.Variable(self.params[10])
@@ -127,7 +136,7 @@ class TARGET_LSTM(object):
         params.extend([
             self.W_i, self.U_i, self.b_i,
             self.W_f, self.U_f, self.b_f,
-            self.W_og, self.U_og, self.b_o,
+            self.W_o, self.U_o, self.b_o,
             self.W_c, self.U_c, self.b_c])
 
         def unit(x, hidden_mem_tm1):

@@ -27,7 +27,7 @@ class Generator(object):
 
         # LSTM Generator
         with tf.variable_scope("generator"):
-            self.g_emb = tf.Variable(tf.random_normal([self.emb_num, self.emb_dim]))
+            self.g_emb = tf.Variable(self.init_matrix([self.emb_num, self.emb_dim]))
             self.g_params.append(self.g_emb)
             # Maps h_tm1 to h_t for generator. h_tm1 means hidden layer at t-1 step
             self.g_recurrent_unit = self.create_lstm_unit(self.g_params)
@@ -97,29 +97,40 @@ class Generator(object):
             return i+1, x_tp1, h_t, g_pred
 
         _, _, _, self.g_pred = control_flow_ops.while_loop(
-            cond=lambda i, _1, _2, _3, _4: i < self.seq_len,
+            cond=lambda i, _1, _2, _3: i < self.seq_len,
             body=pretrain_recurrence,
             loop_vars=(tf.constant(0, dtype=tf.int32), tf.nn.embedding_lookup(self.g_emb, self.start_token), self.h0, g_pred)
         )
         # batch_size x seq_length x vocab_size
-        self.g_pred = tf.transpose(self.g_pred, perm=[1, 0, 2])
+        self.g_pred = tf.transpose(self.g_pred.stack(), perm=[1, 0, 2])
 
         # pretraining loss
-        self.pretrain_loss = -tf.reduce_sum(tf.one_hot(tf.to_int32(tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(tf.clip_by_value(tf.reshape(self.g_pred, [-1, self.emb_num]), 1e-20, 1.0)))/(self.seq_len*self.batch_size)
+        self.pretrain_loss = -tf.reduce_sum(
+                                tf.one_hot(
+                                tf.to_int32(
+                                tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(
+                                tf.clip_by_value(
+                                tf.reshape(self.g_pred, [-1, self.emb_num]), 1e-20, 1.0)))/(self.seq_len*self.batch_size)
 
         # training updates
         pretrain_opt = self.g_optimizer(self.lr)
 
         self.pretrain_grad, _ = tf.clip_by_global_norm(tf.gradients(self.pretrain_loss, self.g_params), self.grad_clip)
-        self.pretrain_updates = pretrain_opt.apply_gradients(zip(self.pretrain_grad, self.g_params))
+        self.pretrain_updates = pretrain_opt.apply_gradients(list(zip(self.pretrain_grad, self.g_params)))
 
         # UNSUPERVISED LEARNING
-        self.g_loss = -tf.reduce_sum(tf.reduce_sum(tf.one_hot(tf.to_int32(tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(tf.clip_by_value(tf.reshape(self.g_pred, [-1, self.emb_num]), 1e-20, 1.0)), 1) * tf.reshape(self.rewards, [-1]))
+        self.g_loss = -tf.reduce_sum(
+                        tf.reduce_sum(
+                        tf.one_hot(
+                        tf.to_int32(
+                        tf.reshape(self.x, [-1])), self.emb_num, 1.0, 0.0) * tf.log(
+                        tf.clip_by_value(
+                        tf.reshape(self.g_pred, [-1, self.emb_num]), 1e-20, 1.0)), 1) * tf.reshape(self.rewards, [-1]))
 
         g_opt = self.g_optimizer(self.lr)
 
         self.g_grad, _ = tf.clip_by_global_norm(tf.gradients(self.g_loss, self.g_params), self.grad_clip)
-        self.g_updates = g_opt.apply_gradients(zip(self.g_grad, self.g_params))
+        self.g_updates = g_opt.apply_gradients(list(zip(self.g_grad, self.g_params)))
 
     def generate(self, sess):
         outputs = sess.run(self.gen_x)
