@@ -1,0 +1,44 @@
+Pre-training...
+Epoch:	0	Neg-Log Likelihood:	10.197682
+Adversarial training...
+Epoch:	0	Negative Log Likelihood:	9.5653715
+Epoch:	5	Negative Log Likelihood:	9.501405
+Epoch:	10	Negative Log Likelihood:	9.427489
+Epoch:	15	Negative Log Likelihood:	9.39007
+Epoch:	20	Negative Log Likelihood:	9.344393
+Epoch:	25	Negative Log Likelihood:	9.31942
+Epoch:	30	Negative Log Likelihood:	9.292509
+Epoch:	35	Negative Log Likelihood:	9.2574005
+Epoch:	40	Negative Log Likelihood:	9.269861
+Epoch:	45	Negative Log Likelihood:	9.295773
+Epoch:	50	Negative Log Likelihood:	9.297268
+Epoch:	55	Negative Log Likelihood:	9.296878
+Epoch:	60	Negative Log Likelihood:	9.307355
+Epoch:	65	Negative Log Likelihood:	9.327741
+Epoch:	70	Negative Log Likelihood:	9.349688
+Epoch:	75	Negative Log Likelihood:	9.379597
+Epoch:	80	Negative Log Likelihood:	9.401245
+Epoch:	85	Negative Log Likelihood:	9.441938
+Epoch:	90	Negative Log Likelihood:	9.468668
+Epoch:	95	Negative Log Likelihood:	9.477774
+Epoch:	100	Negative Log Likelihood:	9.503892
+Epoch:	105	Negative Log Likelihood:	9.515493
+Epoch:	110	Negative Log Likelihood:	9.553477
+Epoch:	115	Negative Log Likelihood:	9.570919
+Epoch:	120	Negative Log Likelihood:	9.588267
+Epoch:	125	Negative Log Likelihood:	9.600913
+Epoch:	130	Negative Log Likelihood:	9.616723
+Epoch:	135	Negative Log Likelihood:	9.631002
+Epoch:	140	Negative Log Likelihood:	9.622847
+Epoch:	145	Negative Log Likelihood:	9.616501
+Epoch:	150	Negative Log Likelihood:	9.641547
+Epoch:	155	Negative Log Likelihood:	9.677297
+Epoch:	160	Negative Log Likelihood:	9.714731
+Epoch:	165	Negative Log Likelihood:	9.746882
+Epoch:	170	Negative Log Likelihood:	9.763548
+Epoch:	175	Negative Log Likelihood:	9.778145
+Epoch:	180	Negative Log Likelihood:	9.7770405
+Epoch:	185	Negative Log Likelihood:	9.799249
+Epoch:	190	Negative Log Likelihood:	9.820469
+Epoch:	195	Negative Log Likelihood:	9.843272
+Epoch:	199	Negative Log Likelihood:	9.8752
