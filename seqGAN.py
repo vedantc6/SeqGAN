@@ -7,6 +7,8 @@ from discriminator import Discriminator
 from target_lstm import TARGET_LSTM
 from rollout import ROLLOUT
 import pickle
+import time
+from tqdm import tqdm
 
 tf.reset_default_graph()
 # Generator Hyper Parameters
@@ -18,7 +20,7 @@ EMB_DIM = 32
 HIDDEN_DIM = 32
 SEQ_LENGTH = 20
 START_TOKEN = 0
-PRE_EPOCH_NUM = 120
+PRE_EPOCH_NUM = 10
 SEED = 88
 BATCH_SIZE = 64
 
@@ -32,10 +34,10 @@ dis_l2_reg_lambda = 0.2
 
 # Basic Training Parameters
 TOTAL_BATCH = 200
-positive_file = 'data/real_data.txt'
+positive_file = 'instapic/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
-generated_num = 10000
+generated_num = 1000
 
 # Generate data samples - will use Generator model
 def generate_samples(sess, trainable_model, batch_size, generated_num, output_file):
@@ -81,13 +83,13 @@ def main():
     gen_data_loader = Generator_Data_Loader(BATCH_SIZE)
     # For testing
     likelihood_data_loader = Generator_Data_Loader(BATCH_SIZE)
-    vocab_size = 5000
+    vocab_size = 19851
     dis_data_loader = Discriminator_Data_Loader(BATCH_SIZE)
 
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
     target_params = pickle.load(open('data/target_params_py3.pkl', 'rb'))
     # The oracle model - synthetic data
-    target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params)
+    # target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params)
 
     discriminator = Discriminator(seq_len=20, num_classes=2, vocab_size=vocab_size, emb_size=dis_embedding_dim, filter_sizes=dis_filter_sizes, num_filters=dis_num_filters, l2_reg_lambda=dis_l2_reg_lambda)
 
@@ -97,7 +99,7 @@ def main():
     sess.run(tf.global_variables_initializer())
 
     # First, use the oracle model to provide the positive examples, which are sampled from the oracle data distribution
-    generate_samples(sess, target_lstm, BATCH_SIZE, generated_num, positive_file)
+    # generate_samples(sess, target_lstm, BATCH_SIZE, generated_num, positive_file)
     gen_data_loader.create_batches(positive_file)
 
     log = open('data/experiment-log.txt', 'w')
@@ -105,18 +107,22 @@ def main():
     print('Start pre-training...')
     log.write('Pre-training...\n')
     for epoch in range(PRE_EPOCH_NUM):
+        start = time.time()
         loss = pre_train_epoch(sess, generator, gen_data_loader)
-        if epoch % 5 == 0:
-            generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
-            likelihood_data_loader.create_batches(eval_file)
-            test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
-            print(f'Pre-train epoch: {epoch}, Test_loss: {test_loss}')
-            buffer = "Epoch:\t"+ str(epoch) + "\tNeg-Log Likelihood:\t" + str(test_loss) + "\n"
-            log.write(buffer)
+        print("Epoch ",epoch, " Loss: ", loss)
+        print("Per epoch time consumed: ", time.time()-start)
+
+        # if epoch % 5 == 0:
+        #     generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
+        #     likelihood_data_loader.create_batches(eval_file)
+        #     test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
+        #     print(f'Pre-train epoch: {epoch}, Test_loss: {test_loss}')
+        #     buffer = "Epoch:\t"+ str(epoch) + "\tNeg-Log Likelihood:\t" + str(test_loss) + "\n"
+        #     log.write(buffer)
 
     print('Start pre-training discriminator...')
     # Train 3 epoch on the generated data and do this for 50 times
-    for _ in range(50):
+    for _ in tqdm(range(50)):
         generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
         dis_data_loader.load_train_data(positive_file, negative_file)
         for _ in range(3):
@@ -145,11 +151,11 @@ def main():
 
         # Test
         if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
-            generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
-            likelihood_data_loader.create_batches(eval_file)
-            test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
-            buffer = "Epoch:\t" + str(total_batch) + "\tNegative Log Likelihood:\t" + str(test_loss) + "\n"
-            print(f'Total Batch: {total_batch}, Test Loss {test_loss}')
+            # generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
+            # likelihood_data_loader.create_batches(eval_file)
+            # test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
+            buffer = "Epoch:\t" + str(total_batch) + "\tReward:\t" + str(rewards) + "\n"
+            print(f'Total Batch: {total_batch}, Reward {rewards}')
             log.write(buffer)
 
         # Update roll-out parameters
@@ -170,6 +176,12 @@ def main():
                         discriminator.dropout_keep_prob: dis_dropout_keep_prob
                     }
                     _ = sess.run(discriminator.train_op, feed)
+
+    # Final generation
+    print("Writing final results to test file")
+    test_file = "data/final.txt"
+    generate_samples(sess, generator, BATCH_SIZE, generated_num, test_file)
+    print("Finished")
 
     log.close()
 

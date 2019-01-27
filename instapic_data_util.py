@@ -15,7 +15,7 @@ import numpy as np
 
 # Hyperparameters
 CONTEXT_LENGTH = 100
-CAPTION_VOCAB_SIZE = 40000
+CAPTION_VOCAB_SIZE = 100000
 HASHTAG_VOCAB_SIZE = 60000
 DATA_ROOT_PATH = 'instapic'
 
@@ -50,10 +50,10 @@ HASHTAG_VOCAB_FNAME = os.path.join(
 )
 
 # For vocaulary
-_PAD = "_PAD"
-_GO = "_GO"
-_EOS = "_EOS"
-_UNK = "_UNK"
+_PAD = "_pad"
+_GO = "_go"
+_EOS = "_eos"
+_UNK = "_unk"
 _START_VOCAB = [_PAD, _GO, _EOS, _UNK]
 
 PAD_ID = 0
@@ -193,8 +193,8 @@ def create_vocabulary(counter, fname, vocab_size):
     colorlog.info("Create vocabulary %s" % (fname))
     sorted_tokens = sort_dict(counter)
     vocab = _START_VOCAB + [x[0] for x in sorted_tokens]
-    if len(vocab) > vocab_size:
-        vocab = vocab[:vocab_size]
+    # if len(vocab) > vocab_size:
+    #     vocab = vocab[:vocab_size]
     with open(fname, 'w') as f:
         for w in vocab:
             f.write(w + "\n")
@@ -284,36 +284,36 @@ def main():
     hashtag_vocab, hashtag_rev_vocab = create_vocabulary(hashtag_counter, HASHTAG_VOCAB_FNAME, HASHTAG_VOCAB_SIZE)
 
     # Get tfidf weighted tokens
-    caption_train_tfidf_tokens, caption_test1_tfidf_tokens, caption_test2_tfidf_tokens = get_tfidf_words(
-                    caption_train_tokens,
-                    caption_test1_tokens,
-                    caption_test2_tokens,
-                    caption_vocab,
-                    caption_rev_vocab
-                    )
-    hashtag_train_tfidf_tokens, hashtag_test1_tfidf_tokens, hashtag_test2_tfidf_tokens = get_tfidf_words(
-                    hashtag_train_tokens,
-                    hashtag_test1_tokens,
-                    hashtag_test2_tokens,
-                    hashtag_vocab,
-                    hashtag_rev_vocab
-                    )
-
-    # Save data
-    save_data(
-                (caption_train_tokens, caption_train_tfidf_tokens),
-                (caption_test1_tokens, caption_test1_tfidf_tokens),
-                (caption_test2_tokens, caption_test2_tfidf_tokens),
-                CAPTION_OUTPUT_PATH,
-                caption_rev_vocab
-            )
-    save_data(
-                (hashtag_train_tokens, hashtag_train_tfidf_tokens),
-                (hashtag_test1_tokens, hashtag_test1_tfidf_tokens),
-                (hashtag_test2_tokens, hashtag_test2_tfidf_tokens),
-                HASHTAG_OUTPUT_PATH,
-                hashtag_rev_vocab
-            )
+    # caption_train_tfidf_tokens, caption_test1_tfidf_tokens, caption_test2_tfidf_tokens = get_tfidf_words(
+    #                 caption_train_tokens,
+    #                 caption_test1_tokens,
+    #                 caption_test2_tokens,
+    #                 caption_vocab,
+    #                 caption_rev_vocab
+    #                 )
+    # hashtag_train_tfidf_tokens, hashtag_test1_tfidf_tokens, hashtag_test2_tfidf_tokens = get_tfidf_words(
+    #                 hashtag_train_tokens,
+    #                 hashtag_test1_tokens,
+    #                 hashtag_test2_tokens,
+    #                 hashtag_vocab,
+    #                 hashtag_rev_vocab
+    #                 )
+    #
+    # # Save data
+    # save_data(
+    #             (caption_train_tokens, caption_train_tfidf_tokens),
+    #             (caption_test1_tokens, caption_test1_tfidf_tokens),
+    #             (caption_test2_tokens, caption_test2_tfidf_tokens),
+    #             CAPTION_OUTPUT_PATH,
+    #             caption_rev_vocab
+    #         )
+    # save_data(
+    #             (hashtag_train_tokens, hashtag_train_tfidf_tokens),
+    #             (hashtag_test1_tokens, hashtag_test1_tfidf_tokens),
+    #             (hashtag_test2_tokens, hashtag_test2_tfidf_tokens),
+    #             HASHTAG_OUTPUT_PATH,
+    #             hashtag_rev_vocab
+    #         )
 
 if __name__ == '__main__':
     main()
