@@ -20,7 +20,7 @@ CAPTION_OUTPUT_PATH = os.path.join(DATA_ROOT_PATH, 'caption_dataset')
 VOCAB_FILE = os.path.join(CAPTION_OUTPUT_PATH, 'new.vocab')
 WORD2IDX_PICKLE = os.path.join(DATA_ROOT_PATH, 'word_2_idx.pickle')
 IDX2WORD_PICKLE = os.path.join(DATA_ROOT_PATH, 'idx_2_word.pickle')
-REAL_TEXT = os.path.join(DATA_ROOT_PATH, 'real_data.txt')
+REAL_TEXT = os.path.join(DATA_ROOT_PATH, 'real_data_500.txt')
 
 # For vocaulary
 _PAD = "_pad"
@@ -155,7 +155,7 @@ def main():
 
     # Load raw data
     caption_train_json = load_json(CAPTION_TRAIN_JSON_FNAME)
-    caption_train_json_1 = take(200, caption_train_json.items())
+    caption_train_json_1 = take(500, caption_train_json.items())
 
     caption_counter, caption_train_tokens = tokenize_all(caption_train_json_1, 'caption')
     caption_vocab = create_vocabulary(caption_counter, VOCAB_FILE)
@@ -164,14 +164,14 @@ def main():
     post_caption_dict = {}
     i = 0
     for user_id, posts in caption_train_json_1.items():
-        if i < 1:
+        if i < 2:
             j = 0
             for post_id, post in list(posts.items()):
                 if j < NUMBER_OF_SENTENCES:
                     if post['m_id'] not in post_caption_dict:
                         post_tokens = tokenize(post['caption'])
                         post_caption_dict[post['m_id']] = post_tokens
-                j += 1
+                    j += 1
         i += 1
 
     out_file = open(REAL_TEXT, "w")

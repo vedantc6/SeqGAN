@@ -34,9 +34,9 @@ dis_l2_reg_lambda = 0.2
 
 # Basic Training Parameters
 TOTAL_BATCH = 200
-positive_file = 'instapic/real_data.txt'
+positive_file = 'instapic/real_data_200.txt'
 negative_file = 'data/generator_sample.txt'
-eval_file = 'data/eval_file.txt'
+# eval_file = 'data/eval_file.txt'
 generated_num = 1000
 
 # Generate data samples - will use Generator model
@@ -87,7 +87,7 @@ def main():
     dis_data_loader = Discriminator_Data_Loader(BATCH_SIZE)
 
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
-    target_params = pickle.load(open('data/target_params_py3.pkl', 'rb'))
+    # target_params = pickle.load(open('data/target_params_py3.pkl', 'rb'))
     # The oracle model - synthetic data
     # target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params)
 
@@ -141,7 +141,7 @@ def main():
     print('#########################################################################')
     print('Start Adversarial Training...')
     log.write('Adversarial training...\n')
-    for total_batch in range(TOTAL_BATCH):
+    for total_batch in tqdm(range(TOTAL_BATCH)):
         # Train the generator for one step
         for it in range(1):
             samples = generator.generate(sess)
